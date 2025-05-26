@@ -31,7 +31,12 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-&iq20*ri8a0y9%8sw@(e&
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [ 
+    "bd-okr.onrender.com",
+    'localhost',
+    '127.0.0.1',
+    "fe-okr-fi2.vercel.app"
+]
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:4200",
