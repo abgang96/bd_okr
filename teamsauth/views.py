@@ -268,13 +268,13 @@ class MicrosoftAuthCallbackView(APIView):
         tenant_id = settings.MS_GRAPH_TENANT_ID if settings.MS_GRAPH_TENANT_ID else '0f31460e-8f97-4bf6-9b20-fe837087ad59'
         token_url = f"https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token"
 
-        # redir_uri="https://fe-okr-fi2.vercel.app/auth/microsoft-callback"
+        redir_uri="https://fe-okr-fi2.vercel.app/auth/microsoft-callback"
         
         token_data = {
             'client_id': settings.MS_GRAPH_CLIENT_ID,
             'client_secret': settings.MS_GRAPH_CLIENT_SECRET,
             'code': code,
-            'redirect_uri': redirect_uri,
+            'redirect_uri': redir_uri,
             'grant_type': 'authorization_code',
             'scope': 'https://graph.microsoft.com/User.Read'
         }
