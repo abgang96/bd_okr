@@ -1,0 +1,42 @@
+from django.db import migrations, models
+import django.db.models.deletion
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('teamsauth', '0001_initial'),
+        ('okrapi', '0014_questionmaster_authentication_type_managerreview_and_more'),  # Latest migration
+    ]
+
+    operations = [
+        migrations.AddField(
+            model_name='questionmaster',
+            name='authentication_type',
+            field=models.IntegerField(choices=[(0, 'Employee'), (1, 'Manager'), (2, 'Both')], default=0),
+        ),
+        migrations.CreateModel(
+            name='ManagerReview',
+            fields=[
+                ('review_id', models.AutoField(primary_key=True, serialize=False)),
+                ('status', models.IntegerField(choices=[(0, 'Not Started'), (1, 'In Progress'), (2, 'Completed')], default=0)),
+                ('summary_comments', models.TextField(blank=True, max_length=500, null=True)),
+                ('created_at', models.DateTimeField(auto_now_add=True)),
+                ('updated_at', models.DateTimeField(auto_now=True)),
+                ('form', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='manager_reviews', to='okrapi.formdata')),
+                ('manager', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='provided_reviews', to='teamsauth.teamsprofile')),
+            ],
+            options={
+                'unique_together': {('form', 'manager')},
+            },
+        ),
+        migrations.CreateModel(
+            name='ManagerAnswerData',
+            fields=[
+                ('answer_id', models.AutoField(primary_key=True, serialize=False)),
+                ('answer_description', models.TextField(blank=True, max_length=500, null=True)),
+                ('option', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='okrapi.optionmapper')),
+                ('question', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='okrapi.questionmaster')),
+                ('review', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='answers', to='okrapi.managerreview')),
+            ],
+        ),
+    ]
