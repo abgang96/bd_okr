@@ -92,7 +92,7 @@ WSGI_APPLICATION = 'okr.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
+        'ENGINE': 'django.db.backends.postgresql_psycopg',
         'NAME': 'OKr-TOR',
         'USER': 'postgres',
         'PASSWORD': '2CaXH4ge792401',
