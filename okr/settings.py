@@ -35,7 +35,7 @@ ALLOWED_HOSTS = []
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:4200","https://fe-okr-fi2-nmjs.vercel.app",
-    "http://localhost:3000",
+    "http://localhost:3000","https://bd-okr.onrender.com","https://fe-okr-fi2.vercel.app"
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True
