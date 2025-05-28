@@ -220,13 +220,13 @@ class WeeklyFormViewSet(viewsets.ModelViewSet):
             return Response({"error": "User profile not found"}, status=status.HTTP_404_NOT_FOUND)
             
         team_members = get_team_members(user_profile)
-        
-        # Print the serialized data for debugging
+          # Print the serialized data for debugging
         serializer = TeamMemberSerializer(team_members, many=True)
         print("\nDEBUG: Serialized response data:")
         print(serializer.data)
         
-        return Response(serializer.data)
+        # Return in the expected structure with 'team_members' key
+        return Response({"team_members": serializer.data})
         
     @action(detail=False, methods=['get'])
     def team_member_forms(self, request):

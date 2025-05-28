@@ -43,8 +43,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "https://bd-okr.onrender.com",
     "https://fe-okr-fi2.vercel.app",
-    "bd-okr.onrender.com",
-    "fe-okr-fi2.vercel.app"
+    
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True

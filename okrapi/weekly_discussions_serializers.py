@@ -1,4 +1,5 @@
 from rest_framework import serializers
+import datetime
 from .weekly_discussions_models import (
     QuestionMaster, OptionMapper, FormData, UserAnswerData,
     ManagerReview, ManagerAnswerData
@@ -81,10 +82,16 @@ class FormDataSerializer(serializers.ModelSerializer):
     
     def get_status_display(self, obj):
         return obj.get_status_display()
-    
     def get_week(self, obj):
-        # Format the date as "Week of MM/DD/YYYY"
-        return f"Week of {obj.entry_date.strftime('%m/%d/%Y')}"
+        # Get the Monday date (entry_date is already the Monday of the week)
+        monday_date = obj.entry_date
+        # Calculate Friday date (4 days after Monday)
+        friday_date = monday_date + datetime.timedelta(days=4)
+        # Format dates as "dd MMM yyyy"
+        monday_str = monday_date.strftime('%d %b %Y')
+        friday_str = friday_date.strftime('%d %b %Y')
+        # Return the date range
+        return f"{monday_str} - {friday_str}"
     def get_user_name(self, obj):
         return obj.user.user_name if hasattr(obj.user, 'user_name') else obj.user.teams_user_principal_name
         

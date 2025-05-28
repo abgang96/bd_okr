@@ -144,9 +144,7 @@ class WeeklyFormViewSet(viewsets.ModelViewSet):
             return FormData.objects.filter(user=user_profile).order_by('-entry_date')
         except Exception as e:
             print(f"Error in get_queryset: {str(e)}")
-            return FormData.objects.none()  # Return empty queryset on error
-
-    @action(detail=False, methods=['get'])
+            return FormData.objects.none()  # Return empty queryset on error    @action(detail=False, methods=['get'])
     def my_forms(self, request):
         """Get the weekly forms for the current user"""
         forms = self.get_queryset()
@@ -162,7 +160,8 @@ class WeeklyFormViewSet(viewsets.ModelViewSet):
             
         team_members = get_team_members(user_profile)
         serializer = TeamMemberSerializer(team_members, many=True)
-        return Response(serializer.data)
+        # Return in the expected structure with 'team_members' key
+        return Response({"team_members": serializer.data})
         
     @action(detail=False, methods=['get'])
     def team_member_forms(self, request):
