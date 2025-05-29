@@ -12,14 +12,14 @@ class TeamsProfile(models.Model):
     """
     Profile model for Microsoft Teams users.
     Extends the built-in Django User model with Teams-specific fields.
-    """
-    # User fields
+    """    # User fields
     teams_id = models.CharField(max_length=255, unique=True, null=True, blank=True)
     tenant_id = models.CharField(max_length=255, null=True, blank=True)
     department = models.CharField(max_length=255, null=True, blank=True)
     job_title = models.CharField(max_length=255, null=True, blank=True)
     manager_id = models.CharField(max_length=255, null=True, blank=True)
     user_name = models.CharField(max_length=255, null=True, blank=True)
+    isActive = models.BooleanField(default=True)
     
     # Teams-specific profile data
     teams_user_principal_name = models.EmailField(null=True, blank=True)
