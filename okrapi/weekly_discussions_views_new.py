@@ -29,10 +29,9 @@ def get_teams_profile(user):
     """Get or create a TeamsProfile for a Django User object"""
     if not user or user.is_anonymous:
         return None
-        
-    # Try to find by email
+          # Try to find by email
     if user.email:
-        profile = TeamsProfile.objects.filter(teams_user_principal_name=user.email).first()
+        profile = TeamsProfile.objects.filter(teams_user_principal_name=user.email, isActive=True).first()
         if profile:
             return profile
     
@@ -77,7 +76,7 @@ def get_team_members(manager_profile):
     if not manager_profile:
         return TeamsProfile.objects.none()
         
-    return TeamsProfile.objects.filter(manager_id=manager_profile.teams_id)
+    return TeamsProfile.objects.filter(manager_id=manager_profile.teams_id, isActive=True)
 
 def create_manager_reviews(manager, team_member_forms):
     """Create manager review objects for forms that don't have them"""

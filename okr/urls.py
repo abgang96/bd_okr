@@ -23,21 +23,21 @@ from rest_framework_simplejwt.views import (
 )
 from okrapi.views import OKRViewSet, TaskViewSet, DepartmentViewSet, BusinessUnitViewSet, OkrUserMappingViewSet, TaskChallengesViewSet
 from okrapi.weekly_discussions_views import QuestionViewSet, WeeklyFormViewSet
+from okrapi.questions_views import QuestionMasterViewSet
 from teamsauth.urls import router as teams_router
 
 router = DefaultRouter()
 router.register(r'okrs', OKRViewSet, basename='okr')
-router.register(r'tasks', TaskViewSet)
-router.register(r'departments', DepartmentViewSet)
-router.register(r'business-units', BusinessUnitViewSet)
-router.register(r'questions', QuestionViewSet)
-router.register(r'weekly-forms', WeeklyFormViewSet, basename='weekly-forms')
-router.register(r'okr-user-mappings', OkrUserMappingViewSet)
-router.register(r'task-challenges', TaskChallengesViewSet)
+router.register(r'tasks', TaskViewSet, basename='task')
+router.register(r'departments', DepartmentViewSet, basename='department')
+router.register(r'business-units', BusinessUnitViewSet, basename='business-unit')
+router.register(r'okr-user-mappings', OkrUserMappingViewSet, basename='okr-user-mapping')
+router.register(r'task-challenges', TaskChallengesViewSet, basename='task-challenge')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),
+    path('api/', include('okrapi.urls')),  # Include okrapi URLs
     path('api/', include(teams_router.urls)),  # Include TeamsProfile API urls
     path('api/auth/', include('teamsauth.urls')),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),

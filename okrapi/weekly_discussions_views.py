@@ -29,10 +29,9 @@ def get_teams_profile(user):
     """Get or create a TeamsProfile for a Django User object"""
     if not user or user.is_anonymous:
         return None
-        
-    # Try to find by email
+          # Try to find by email
     if user.email:
-        profile = TeamsProfile.objects.filter(teams_user_principal_name=user.email).first()
+        profile = TeamsProfile.objects.filter(teams_user_principal_name=user.email, isActive=True).first()
         if profile:
             return profile
     
@@ -85,8 +84,7 @@ def get_team_members(manager_profile):
     print(f"\nDEBUG: Looking for team members with manager_id={manager_profile.teams_id}")
     print(f"DEBUG: Manager teams_id type: {type(manager_profile.teams_id)}")
     
-    team_members = TeamsProfile.objects.filter(manager_id=manager_profile.teams_id)
-    
+    team_members = TeamsProfile.objects.filter(manager_id=manager_profile.teams_id, isActive=True)
     print("\nDEBUG: Team Members Query:")
     print(f"SQL Query: {str(team_members.query)}")
     print(f"Found {team_members.count()} team members")

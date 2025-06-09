@@ -1,9 +1,11 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import TeamsAuthView, MicrosoftAuthCallbackView, CurrentUserView, TeamsProfileViewSet, TeamMembersView
+from .access_views import TeamsProfileWithAccessViewSet
 
 router = DefaultRouter()
 router.register(r'users', TeamsProfileViewSet)
+router.register(r'user-access', TeamsProfileWithAccessViewSet, basename='user-access')
 
 urlpatterns = [
     path('', include(router.urls)),

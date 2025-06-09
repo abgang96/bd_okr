@@ -63,16 +63,38 @@ class OKRSerializer(serializers.ModelSerializer):
         required=False
     )
     primary_user_id = serializers.CharField(required=False, write_only=True)  # Using CharField for teams_id
+    department_details = DepartmentSerializer(source='department', read_only=True)
+    child_okrs = serializers.SerializerMethodField()
+    parent_okr_details = serializers.SerializerMethodField()
     
     class Meta:
         model = OKR
         fields = [
             'okr_id', 'name', 'description', 'assumptions', 'parent_okr', 
-            'department', 'start_date', 'due_date', 'status', 
-            'progress_percent', 'assigned_users_details',
-            'business_units', 'business_unit_ids', 'assigned_user_ids', 
-            'primary_user_id', 'isMeasurable',
+            'parent_okr_details', 'department', 'department_details', 
+            'start_date', 'due_date', 'status', 'progress_percent', 
+            'assigned_users_details', 'child_okrs', 'business_units', 
+            'business_unit_ids', 'assigned_user_ids', 'primary_user_id', 
+            'isMeasurable',
         ]
+    
+    def get_parent_okr_details(self, obj):
+        if obj.parent_okr:
+            return {
+                'okr_id': obj.parent_okr.okr_id,
+                'name': obj.parent_okr.name
+            }
+        return None
+    
+    def get_child_okrs(self, obj):
+        # Get all child OKRs and return their basic details
+        children = OKR.objects.filter(parent_okr=obj.okr_id)
+        return [{
+            'okr_id': child.okr_id,
+            'name': child.name,
+            'status': child.status,
+            'progress_percent': child.progress_percent
+        } for child in children]
     
     def get_assigned_users_details(self, obj):
         user_mappings = obj.user_mappings.all().select_related('user')
@@ -98,11 +120,10 @@ class OKRSerializer(serializers.ModelSerializer):
                 BusinessUnitOKRMapping.objects.create(okr=okr, business_unit=business_unit)
             except BusinessUnit.DoesNotExist:
                 pass
-        
         for teams_id in assigned_user_ids:
             is_primary = (teams_id == primary_user_id) if primary_user_id else (teams_id == assigned_user_ids[0])
             try:
-                user = TeamsProfile.objects.get(teams_id=teams_id)
+                user = TeamsProfile.objects.get(teams_id=teams_id, isActive=True)
                 OkrUserMapping.objects.create(
                     okr=okr,
                     user=user,
@@ -130,13 +151,12 @@ class OKRSerializer(serializers.ModelSerializer):
                     BusinessUnitOKRMapping.objects.create(okr=instance, business_unit=business_unit)
                 except BusinessUnit.DoesNotExist:
                     pass
-        
         if assigned_user_ids is not None:
             OkrUserMapping.objects.filter(okr=instance).delete()
             for teams_id in assigned_user_ids:
                 is_primary = (teams_id == primary_user_id) if primary_user_id else (teams_id == assigned_user_ids[0])
                 try:
-                    user = TeamsProfile.objects.get(teams_id=teams_id)
+                    user = TeamsProfile.objects.get(teams_id=teams_id, isActive=True)
                     OkrUserMapping.objects.create(
                         okr=instance,
                         user=user,

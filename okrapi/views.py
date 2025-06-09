@@ -33,9 +33,22 @@ class BusinessUnitViewSet(viewsets.ModelViewSet):
 class OKRViewSet(viewsets.ModelViewSet):
     queryset = OKR.objects.all().prefetch_related(
         'user_mappings', 'user_mappings__user',
-        'business_unit_mappings', 'business_unit_mappings__business_unit'
-    )
+        'business_unit_mappings', 'business_unit_mappings__business_unit',
+        'child_okrs'
+    ).select_related('department')
     serializer_class = OKRSerializer
+    
+    def get_queryset(self):
+        # Get all OKRs since we need them for the tree
+        queryset = super().get_queryset().select_related(
+            'department', 'parent_okr'
+        ).prefetch_related(
+            'user_mappings__user',
+            'business_unit_mappings__business_unit'
+        )
+        # Add debug logging
+        logger.info(f'Fetching OKRs. Total count: {queryset.count()}')
+        return queryset.distinct()
 
     def create(self, request, *args, **kwargs):
         data = request.data
@@ -78,8 +91,7 @@ class OKRViewSet(viewsets.ModelViewSet):
         if getattr(instance, '_prefetched_objects_cache', None):
             instance._prefetched_objects_cache = {}
 
-        return Response(serializer.data)
-
+        return Response(serializer.data)    
     def list(self, request, *args, **kwargs):
         logger.info('Fetching all OKRs')
         response = super().list(request, *args, **kwargs)
@@ -90,7 +102,7 @@ class OKRViewSet(viewsets.ModelViewSet):
     def assigned_users(self, request, pk=None):
         """Get all users assigned to an OKR"""
         okr = self.get_object()
-        user_mappings = okr.user_mappings.all().select_related('user')
+        user_mappings = okr.user_mappings.filter(user__isActive=True).select_related('user')
         
         assigned_users = [
             {
@@ -116,17 +128,15 @@ class OKRViewSet(viewsets.ModelViewSet):
             )
         
         okr.user_mappings.all().delete()
-        
         created_mappings = []
         for idx, user_data in enumerate(users_data):
             teams_id = user_data.get('user_id')
             is_primary = user_data.get('is_primary', idx == 0)
-            
             if not teams_id:
                 continue
-            
+                
             try:
-                user = TeamsProfile.objects.get(teams_id=teams_id)
+                user = TeamsProfile.objects.get(teams_id=teams_id, isActive=True)
                 mapping = OkrUserMapping.objects.create(
                     okr=okr,
                     user=user,
@@ -177,7 +187,7 @@ class TaskViewSet(viewsets.ModelViewSet):
     serializer_class = TaskSerializer
     
     def get_queryset(self):
-        queryset = super().get_queryset()
+        queryset = super().get_queryset().filter(assigned_to__isActive=True)
         linked_to_okr = self.request.query_params.get('linked_to_okr')
         
         if linked_to_okr:
@@ -190,7 +200,7 @@ class OkrUserMappingViewSet(viewsets.ModelViewSet):
     serializer_class = OkrUserMappingSerializer
     
     def get_queryset(self):
-        queryset = super().get_queryset()
+        queryset = super().get_queryset().filter(user__isActive=True)
         okr_id = self.request.query_params.get('okr_id')
         teams_id = self.request.query_params.get('user_id')
         
@@ -204,9 +214,8 @@ class OkrUserMappingViewSet(viewsets.ModelViewSet):
 class TaskChallengesViewSet(viewsets.ModelViewSet):
     queryset = TaskChallenges.objects.all()
     serializer_class = TaskChallengesSerializer
-    
     def get_queryset(self):
-        queryset = super().get_queryset()
+        queryset = super().get_queryset().filter(task__assigned_to__isActive=True)
         task_id = self.request.query_params.get('task_id')
         status = self.request.query_params.get('status')
         
@@ -221,12 +230,11 @@ class TaskChallengesViewSet(viewsets.ModelViewSet):
     def by_task(self, request):
         """Get all challenges for a specific task"""
         task_id = request.query_params.get('task_id')
-        if not task_id:
-            return Response(
+        if not task_id:            return Response(
                 {"error": "task_id parameter is required"}, 
                 status=status.HTTP_400_BAD_REQUEST
             )
             
-        challenges = TaskChallenges.objects.filter(task_id=task_id)
+        challenges = TaskChallenges.objects.filter(task_id=task_id, task__assigned_to__isActive=True)
         serializer = self.get_serializer(challenges, many=True)
         return Response(serializer.data)

@@ -402,7 +402,7 @@ class CurrentUserView(APIView):
         user = request.user
         try:
             # Look up profile by email instead of foreign key
-            profile = TeamsProfile.objects.get(teams_user_principal_name=user.email)
+            profile = TeamsProfile.objects.get(teams_user_principal_name=user.email, isActive=True)
             return Response({
                 'id': user.id,
                 'username': user.username,
@@ -426,12 +426,24 @@ class TeamsProfileViewSet(viewsets.ModelViewSet):
     """
     ViewSet for listing Teams users with search functionality
     """
-    queryset = TeamsProfile.objects.all()
+    queryset = TeamsProfile.objects.filter(isActive=True)  # Default queryset with isActive filter
     serializer_class = TeamsProfileSerializer
     permission_classes = []
-
     def get_queryset(self):
-        queryset = TeamsProfile.objects.all()
+        # Add debug logging
+        import logging
+        from django.db.models import Q
+        logger = logging.getLogger(__name__)
+        logger.info("TeamsProfileViewSet.get_queryset called - filtering active users only")
+        
+        # Get only active users
+        queryset = TeamsProfile.objects.filter(isActive=True)
+        
+        # Log the count of active users
+        active_count = queryset.count()
+        total_count = TeamsProfile.objects.all().count()
+        logger.info(f"Found {active_count} active users out of {total_count} total users")
+        
         search_query = self.request.query_params.get('search', None)
         
         if search_query:
@@ -439,6 +451,7 @@ class TeamsProfileViewSet(viewsets.ModelViewSet):
                 Q(user_name__icontains=search_query) |
                 Q(teams_user_principal_name__icontains=search_query)
             )
+            logger.info(f"After search filter: {queryset.count()} users")
         
         return queryset
 
@@ -459,7 +472,8 @@ class TeamMembersView(APIView):
             # Get the user's team members (this would be based on your business logic)
             # For example, users in the same department
             team_members = TeamsProfile.objects.filter(
-                department=profile.department
+                department=profile.department,
+                isActive=True
             ).exclude(teams_user_principal_name=profile.teams_user_principal_name)
             
             return Response({
