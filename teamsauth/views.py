@@ -135,20 +135,49 @@ class TeamsAuthView(APIView):
             user.is_active = True
             user.save()
             return user, True
-    
     def validate_teams_token(self, token):
-        """Validate Teams token with Microsoft Graph API and get user info"""
+        """Validate Teams token with Microsoft Graph API and get user info
+        Enhanced with better error handling for different client types, especially macOS
+        """
         graph_url = 'https://graph.microsoft.com/v1.0/me'
         headers = {
             'Authorization': f'Bearer {token}',
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'  # Explicitly request JSON response
         }
         
-        response = requests.get(graph_url, headers=headers)
-        
-        if response.status_code == 200:
-            return response.json()
-        return None
+        try:
+            # First attempt with standard approach
+            response = requests.get(graph_url, headers=headers, timeout=10)
+            
+            if response.status_code == 200:
+                return response.json()
+            
+            # If authentication failed, check for common issues
+            if response.status_code == 401:
+                print(f"[TeamsAuthView] Token validation failed with 401: {response.text}")
+                
+                # Check if token has the right structure - sometimes macOS sends different format
+                if token.count('.') != 2:  # JWT tokens have 3 parts separated by dots
+                    print("[TeamsAuthView] Token doesn't have valid JWT format, may be from macOS client")
+                    
+                    # Some macOS clients may strip Bearer prefix - try to parse if needed
+                    if token.startswith('Bearer '):
+                        clean_token = token[7:]  # Remove Bearer prefix
+                        headers['Authorization'] = f'Bearer {clean_token}'
+                        macOS_response = requests.get(graph_url, headers=headers, timeout=10)
+                        
+                        if macOS_response.status_code == 200:
+                            return macOS_response.json()
+            
+            # Log all failed responses for debugging
+            print(f"[TeamsAuthView] Token validation failed: {response.status_code}, {response.text}")
+            
+            return None
+            
+        except Exception as e:
+            print(f"[TeamsAuthView] Exception during token validation: {str(e)}")
+            return None
     
     def get_or_create_user(self, user_data):
         """Get or create a user based on the Microsoft user data"""
