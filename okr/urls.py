@@ -25,6 +25,7 @@ from okrapi.views import OKRViewSet, TaskViewSet, DepartmentViewSet, BusinessUni
 from okrapi.weekly_discussions_views import QuestionViewSet, WeeklyFormViewSet
 from okrapi.questions_views import QuestionMasterViewSet
 from teamsauth.urls import router as teams_router
+from .views_health import health_check
 
 router = DefaultRouter()
 router.register(r'okrs', OKRViewSet, basename='okr')
@@ -42,4 +43,5 @@ urlpatterns = [
     path('api/auth/', include('teamsauth.urls')),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/health/', health_check)
 ]
