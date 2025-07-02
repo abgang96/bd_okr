@@ -28,6 +28,22 @@ class BusinessUnitOKRMapping(models.Model):
         return f"{self.okr} - {self.business_unit}"
 
 class OKR(models.Model):
+    STATUS_NEW = 'New'
+    STATUS_PLANNING = 'Planning'
+    STATUS_ACTIVE = 'Active'
+    STATUS_HOLD = 'Hold'
+    STATUS_CONFIRMATION_AWAITED = 'Confirmation awaited'
+    STATUS_COMPLETED = 'Completed'
+    
+    STATUS_CHOICES = [
+        (STATUS_NEW, 'New'),
+        (STATUS_PLANNING, 'Planning'),
+        (STATUS_ACTIVE, 'Active'),
+        (STATUS_HOLD, 'Hold'),
+        (STATUS_CONFIRMATION_AWAITED, 'Confirmation awaited'),
+        (STATUS_COMPLETED, 'Completed'),
+    ]
+    
     okr_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=200)
     description = models.TextField()
@@ -42,7 +58,7 @@ class OKR(models.Model):
     department = models.ForeignKey(Department, on_delete=models.PROTECT, related_name='department_okrs')
     start_date = models.DateField()
     due_date = models.DateField()
-    status = models.BooleanField(default=True)
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default=STATUS_NEW)
     progress_percent = models.DecimalField(max_digits=5, decimal_places=2)
     isMeasurable = models.BooleanField(default=False)
 
